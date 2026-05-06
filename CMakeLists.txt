@@ -4,6 +4,9 @@ project(EscapeTheGrotto VERSION 1.1 LANGUAGES C)
 add_executable(game 
     src/main.c
     src/input_handle.c
+    src/ansi_wrappers.c
+    src/game.c
+    src/game_view.c
 )
 
 target_include_directories(game PRIVATE include)

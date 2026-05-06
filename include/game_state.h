@@ -6,7 +6,7 @@ typedef struct game_view_t game_view_t;
 
 typedef struct game_state_t
 {
-    int (*handle_input)(input_handle_t* input, game_t* game, game_view_t view);
+    int (*handle_input)(input_handle_t* input, game_t* game, game_view_t* view);
     int (*update)(game_t* game);
     int (*render)(game_t* game, game_view_t* view);
 } game_state_t;
