@@ -12,9 +12,12 @@
 #include "game_state.h"
 #include "game_view.h"
 #include "input_handle.h"
+#include "util/ansi_wrappers.h"
 
 int main()
 {
+    printf("loading game...\n");
+
     srand(time(NULL));
 
     game_t game = { 0 };
@@ -23,6 +26,9 @@ int main()
 
     game_init(&game);
     view_init(&view);
+
+    ansi_hide_cursor();
+    ansi_clear_screen();
 
     while (!game.should_close && game.state)
     {
@@ -49,6 +55,8 @@ int main()
     
     view_free(&view);
     game_free(&game);
+
+    printf("game ended\n");
 
     return 0;
 }
