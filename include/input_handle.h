@@ -9,8 +9,8 @@ typedef enum {
 
     INPUT_MOVE_UP = 'w',
     INPUT_MOVE_LEFT = 'a',
-    INPUT_MOVE_DOWN = 'd',
-    INPUT_MOVE_RIGHT = 'r',
+    INPUT_MOVE_DOWN = 's',
+    INPUT_MOVE_RIGHT = 'd',
 
     INPUT_ARROW_UP = 1,
     INPUT_ARROW_LEFT,

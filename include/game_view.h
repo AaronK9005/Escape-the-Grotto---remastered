@@ -1,8 +1,10 @@
 #pragma once
 
+#include <stdbool.h>
+
 typedef struct game_view_t
 {
-    int placeholder;
+    bool should_render;
 } game_view_t;
 
 void view_init(game_view_t* view);

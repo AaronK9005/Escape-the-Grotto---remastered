@@ -14,21 +14,29 @@
 #include "input_handle.h"
 #include "util/ansi_wrappers.h"
 
+#include "game_states/test_state.h"
+#include "world/chunk.h"
+
+void inform_invalid_gamestate(int ret);
+
 int main()
 {
     printf("loading game...\n");
 
     srand(time(NULL));
 
+    int _return = 0;
     game_t game = { 0 };
     game_view_t view = { 0 };
-    input_handle_t input = { 0 };
+    input_handle_t input = { INPUT_NONE };
 
     game_init(&game);
     view_init(&view);
 
     ansi_hide_cursor();
     ansi_clear_screen();
+
+    game.state = &test_gs;
 
     while (!game.should_close && game.state)
     {
@@ -38,25 +46,58 @@ int main()
         {
             game.state->handle_input(&input, &game, &view);
         }
-        else break;
+        else
+        {
+            _return = 1;
+            break;
+        }
 
         if (game.state->update)
         {
             game.state->update(&game);
         }
-        else break;
+        else
+        {
+            _return = 2;
+            break;
+        }
+
 
         if (game.state->render)
         {
             game.state->render(&game, &view);
         }
-        else break;
+        else
+        {
+            _return = 3;
+            break;
+        }
+
     }
     
     view_free(&view);
     game_free(&game);
 
-    printf("game ended\n");
+    if (_return == 0) {
+        printf("game ended\n");
+        return 0;
+    }
+    else
+    {
+        inform_invalid_gamestate(_return);
+    }
 
-    return 0;
+    return _return;
+}
+
+void inform_invalid_gamestate(int ret) {
+    ansi_clear_screen();
+    const char* func_name = NULL;
+    switch (ret)
+    {
+    case 1: func_name = "handle_input"; break;
+    case 2: func_name = "update"; break;
+    case 3: func_name = "render"; break;
+    }
+    printf("game.state has invalid '%s'\n", func_name);
 }

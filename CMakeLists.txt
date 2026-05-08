@@ -7,6 +7,11 @@ add_executable(game
     src/ansi_wrappers.c
     src/game.c
     src/game_view.c
+    src/chunk.c
+    src/chunk_generate.c
+    src/tiles.c
+    src/floor.c
+    src/test_state.c
 )
 
 target_include_directories(game PRIVATE include)

@@ -8,14 +8,26 @@
  */
 typedef position_t chunk_pos_t;
 
+static inline chunk_pos_t glob_to_chunk(position_t pos) {
+    int cx = pos.x / MAP_SIZE;
+    int cy = pos.y / MAP_SIZE;
+    int rx = pos.x % MAP_SIZE;
+    int ry = pos.y % MAP_SIZE;
+
+    if (cx < 0 && rx != 0) cx--;
+    if (cy < 0 && ry != 0) cy--;
+
+    return (chunk_pos_t){ cx, cy };
+}
+
 /**
  * @brief Self-contained chunk of floor data
- * @param chunk_pos Position of chunk in chunk units (MAP_SIZE)
+ * @param pos Position of chunk in chunk units (MAP_SIZE)
  * @param map 
  */
 typedef struct chunk_t {
-    chunk_pos_t pos;
-    map_t map;
+    chunk_pos_t pos; // position in chunk units
+    map_t map; // map of tiles
 } chunk_t;
 
 /**
@@ -53,9 +65,17 @@ int chunk_save(chunk_t* chunk, int floor_num);
 
 chunk_t* chunk_generate(chunk_t* dest, chunk_pos_t chunk_pos);
 
+/**
+ * @brief Loads different chunk into `dest` or generates, if not generated yet
+ * @param dest Buffer to load to
+ * @param chunk_pos Chunk position on the floor
+ * @param floor_num What floor to load chunk from
+ */
+static void chunk_load_new(chunk_t* dest, chunk_pos_t chunk_pos, int floor_num) {
+    if (!chunk_load(dest, chunk_pos, floor_num)) {
+        chunk_generate(dest, chunk_pos);
+    }
+}
+
 //! not implemented yet
 void chunk_update(chunk_t* chunk);
-
-position_t chunk_place_stairs_up(chunk_t* chunk);
-
-position_t chunk_place_stairs_down(chunk_t* chunk);
