@@ -64,7 +64,7 @@ void floor_set_main_chunk(floor_t* f, chunk_pos_t chunk_pos);
  * @note `f_buffer` must point to valid storage large enough and properly
  *       aligned for a `floor_t`.
  */
-void floor_inline(floor_t* f_buffer, floor_t* f);
+void floor_inline(floor_t* f_buffer, const floor_t* f);
 
 /**
  * @brief Updates a floor object by one simulation step.

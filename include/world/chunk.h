@@ -14,8 +14,8 @@ static inline chunk_pos_t glob_to_chunk(position_t pos) {
     int rx = pos.x % MAP_SIZE;
     int ry = pos.y % MAP_SIZE;
 
-    if (cx < 0 && rx != 0) cx--;
-    if (cy < 0 && ry != 0) cy--;
+    if (pos.x < 0 && rx != 0) cx--;
+    if (pos.y < 0 && ry != 0) cy--;
 
     return (chunk_pos_t){ cx, cy };
 }

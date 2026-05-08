@@ -16,24 +16,25 @@ static void f_init_chunks(floor_t* const f, int level, chunk_pos_t cpos) {
     const int r = RENDER_DISTANCE;
     int chunk_idx = 0;
 
-    for (int i = -r; i <= r; i++) {
-        for (int j = -r; j <= r; j++) {
+    for (int y = -r; y <= r; y++) {
+        for (int x = -r; x <= r; x++) {
             chunk_pos_t chunk_pos = {
-                .x = cpos.x + j,
-                .y = cpos.y + i
+                .x = cpos.x + x,
+                .y = cpos.y + y
             };
 
-            if (NULL == chunk_load(&f->chunk_storage[chunk_idx], chunk_pos, level)) {
-                chunk_generate(&f->chunk_storage[chunk_idx], chunk_pos);
-            }
+            chunk_load_new(&f->chunk_storage[chunk_idx], chunk_pos, level);
 
-            f->chunk[i + r][j + r] = &f->chunk_storage[chunk_idx++];
+            f->chunk[y + r][x + r] = &f->chunk_storage[chunk_idx++];
         }
     }
 
-    f->joker_chunk = *f->chunk[RENDER_DISTANCE][RENDER_DISTANCE];
+    chunk_load_new(&f->joker_chunk, pos_add(cpos, r + 1), level);
 }
 
+/**
+ * @warning Do not save returned chunk. It can be joker_chunk which can change any time
+ */
 static chunk_t* f_get_chunk_rel(floor_t* f, int dx, int dy) {
     if (!f) return NULL;
 
@@ -56,7 +57,7 @@ static chunk_t* f_get_chunk_rel(floor_t* f, int dx, int dy) {
     }
 }
 
-static inline chunk_t* f_main_chunk(floor_t* f) {
+static inline chunk_t* f_main_chunk(const floor_t* f) {
     return f ? f->chunk[RENDER_DISTANCE][RENDER_DISTANCE] : NULL;
 }
 
@@ -78,7 +79,7 @@ void floor_destroy(floor_t* f) {
     free(f);
 }
 
-void floor_inline(floor_t* f_buffer, floor_t* f) {
+void floor_inline(floor_t* f_buffer, const floor_t* f) {
     if (!f_buffer || !f) return;
 
     *f_buffer = *f;
@@ -157,7 +158,7 @@ void floor_shift_chunks(floor_t* f, dir4 d) {
 
             chunk_t* temp = f->chunk[y][0];
             chunk_save(temp, f->level);
-            
+
             for (int x = 0; x < MAX_CHUNK_IDX; x++) {
                 f->chunk[y][x] = f->chunk[y][x + 1];
             }

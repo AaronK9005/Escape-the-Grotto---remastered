@@ -53,8 +53,8 @@ int test_r(game_t* game, game_view_t* view) {
                     floor_get_tile(
                         &game->current_floor,
                         pos_new(
-                            MAP_SIZE * cp_offset_y + j,
-                            MAP_SIZE * cp_offset_x + i
+                            MAP_SIZE * cp_offset_x + j,
+                            MAP_SIZE * cp_offset_y + i
                         )
                     )
                 ]

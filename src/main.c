@@ -78,6 +78,8 @@ int main()
     view_free(&view);
     game_free(&game);
 
+    ansi_clear_screen();
+
     if (_return == 0) {
         printf("game ended\n");
         return 0;
