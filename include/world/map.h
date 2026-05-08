@@ -29,10 +29,8 @@ typedef position_t local_pos_t;
  * @brief Transforms global position into local position
  */
 static inline local_pos_t glob_to_loc(position_t pos) {
-    position_t moded = pos_mod(pos, MAP_SIZE);
-    
     return (local_pos_t){
-        moded.x >= 0 ? moded.x : moded.x + MAP_SIZE,
-        moded.y >= 0 ? moded.y : moded.y + MAP_SIZE
+        ((pos.x % MAP_SIZE) + MAP_SIZE) % MAP_SIZE,
+        ((pos.y % MAP_SIZE) + MAP_SIZE) % MAP_SIZE
     };
 }

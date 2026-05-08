@@ -24,7 +24,7 @@ typedef unsigned char dir_set_t;
 typedef struct floor_t floor_t;
 
 /**
- * @brief Creates a new floor object for the given level.
+ * @brief Creates a new `floor_t` object for the given level.
  *
  * Allocates and initializes a new `floor_t` instance representing the
  * specified floor level.
@@ -34,6 +34,8 @@ typedef struct floor_t floor_t;
  *
  * @note The returned object is owned by the caller and must be destroyed with
  *       `floor_destroy()`.
+ * 
+ * @note Loads chunks around {0,0}
  */
 floor_t* floor_create(int level);
 
@@ -48,7 +50,6 @@ void floor_destroy(floor_t* f);
 
 /**
  * @brief Loads chunks around given `chunk_pos`
- * todo implement
  */
 void floor_set_main_chunk(floor_t* f, chunk_pos_t chunk_pos);
 

@@ -34,6 +34,14 @@ static int init_world(game_t* g) {
             return ERR_OOM;
         }
         f_storage[i] = new_f;
+
+        char buffer[32];
+        snprintf(buffer, sizeof(buffer), "saved/floor_%d", i);
+
+#ifdef _WIN32
+        _mkdir(buffer);
+#endif
+        
     }
 
     g->floor_storage = f_storage;

@@ -79,6 +79,12 @@ void floor_destroy(floor_t* f) {
     free(f);
 }
 
+void floor_set_main_chunk(floor_t* f, chunk_pos_t chunk_pos) {
+    if (!f) return;
+
+    f_init_chunks(f, f->level, chunk_pos);
+}
+
 void floor_inline(floor_t* f_buffer, const floor_t* f) {
     if (!f_buffer || !f) return;
 
