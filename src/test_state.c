@@ -37,6 +37,12 @@ int test_hi(input_handle_t* input, game_t* game, game_view_t* view) {
         cp_offset_x++;
         view->should_render = true;
         break;
+    case INPUT_SAVE_GAME:
+        floor_save(&game->current_floor);
+        ansi_save_pos();
+        ansi_mvprintf(60, 2, "game saved");
+        ansi_use_pos();
+        break;
     }
     return RET_OK;
 }

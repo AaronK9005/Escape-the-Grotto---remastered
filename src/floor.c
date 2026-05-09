@@ -23,13 +23,13 @@ static void f_init_chunks(floor_t* const f, int level, chunk_pos_t cpos) {
                 .y = cpos.y + y
             };
 
-            chunk_load_new(&f->chunk_storage[chunk_idx], chunk_pos, level);
+            chunk_load_new(&f->chunk_storage[chunk_idx], chunk_pos, f->game_name, level);
 
             f->chunk[y + r][x + r] = &f->chunk_storage[chunk_idx++];
         }
     }
 
-    chunk_load_new(&f->joker_chunk, pos_add(cpos, r + 1), level);
+    chunk_load_new(&f->joker_chunk, pos_add(cpos, r + 1), f->game_name, level);
 }
 
 /**
@@ -47,10 +47,8 @@ static chunk_t* f_get_chunk_rel(floor_t* f, int dx, int dy) {
 
         if (!pos_same(f->joker_chunk.pos, requested_cp))
         {
-            chunk_save(&f->joker_chunk, f->level);
-            if (NULL == chunk_load(&f->joker_chunk, requested_cp, f->level)) {
-                chunk_generate(&f->joker_chunk, requested_cp);
-            }
+            chunk_save(&f->joker_chunk, f->game_name, f->level);
+            chunk_load_new(&f->joker_chunk, requested_cp, f->game_name, f->level);
         }
 
         return &f->joker_chunk;
@@ -61,7 +59,7 @@ static inline chunk_t* f_main_chunk(const floor_t* f) {
     return f ? f->chunk[RENDER_DISTANCE][RENDER_DISTANCE] : NULL;
 }
 
-floor_t* floor_create(int level) {
+floor_t* floor_create(const char* game_name, int level) {
     floor_t* f = malloc(sizeof(floor_t));
     if (!f) return NULL;
 
@@ -69,6 +67,7 @@ floor_t* floor_create(int level) {
 
     f_init_chunks(f, level, pos_new(0, 0));
     f->level = level;
+    f->game_name = game_name;
 
     return f;
 }
@@ -77,6 +76,26 @@ void floor_destroy(floor_t* f) {
     if (!f) return;
 
     free(f);
+}
+
+int floor_save(floor_t* f) {
+    if (!f) return 1;
+
+    int fails = 0;
+
+    for (int i = 0; i < CHUNKS_GRID_SIZE; i++) {
+        for (int j = 0; j < CHUNKS_GRID_SIZE; j++) {
+            fails += chunk_save(f->chunk[i][j], f->game_name, f->level);
+        }
+    }
+
+    return fails;
+}
+
+void floor_rename(floor_t* f, const char* new_name) {
+    if (!f) return;
+
+    f->game_name = new_name;
 }
 
 void floor_set_main_chunk(floor_t* f, chunk_pos_t chunk_pos) {
@@ -112,14 +131,14 @@ void floor_shift_chunks(floor_t* f, dir4 d) {
             new_cp.y--;
 
             chunk_t* temp = f->chunk[MAX_CHUNK_IDX][x];
-            chunk_save(temp, f->level);
+            chunk_save(temp, f->game_name, f->level);
 
             for (int y = MAX_CHUNK_IDX; y > 0; y--) {
                 f->chunk[y][x] = f->chunk[y - 1][x];
             }
             f->chunk[0][x] = temp;
 
-            chunk_load_new(temp, new_cp, f->level);
+            chunk_load_new(temp, new_cp, f->game_name, f->level);
         }
         break;
 
@@ -129,14 +148,14 @@ void floor_shift_chunks(floor_t* f, dir4 d) {
             new_cp.y++;
 
             chunk_t* temp = f->chunk[0][x];
-            chunk_save(temp, f->level);
+            chunk_save(temp, f->game_name, f->level);
 
             for (int y = 0; y < MAX_CHUNK_IDX; y++) {
                 f->chunk[y][x] = f->chunk[y + 1][x];
             }
             f->chunk[MAX_CHUNK_IDX][x] = temp;
 
-            chunk_load_new(temp, new_cp, f->level);
+            chunk_load_new(temp, new_cp, f->game_name, f->level);
         }
         break;
 
@@ -146,14 +165,14 @@ void floor_shift_chunks(floor_t* f, dir4 d) {
             new_cp.x--;
 
             chunk_t* temp = f->chunk[y][MAX_CHUNK_IDX];
-            chunk_save(temp, f->level);
+            chunk_save(temp, f->game_name, f->level);
 
             for (int x = MAX_CHUNK_IDX; x > 0; x--) {
                 f->chunk[y][x] = f->chunk[y][x - 1];
             }
             f->chunk[y][0] = temp;
 
-            chunk_load_new(temp, new_cp, f->level);
+            chunk_load_new(temp, new_cp, f->game_name, f->level);
         }
         break;
 
@@ -163,14 +182,14 @@ void floor_shift_chunks(floor_t* f, dir4 d) {
             new_cp.x++;
 
             chunk_t* temp = f->chunk[y][0];
-            chunk_save(temp, f->level);
+            chunk_save(temp, f->game_name, f->level);
 
             for (int x = 0; x < MAX_CHUNK_IDX; x++) {
                 f->chunk[y][x] = f->chunk[y][x + 1];
             }
             f->chunk[y][MAX_CHUNK_IDX] = temp;
 
-            chunk_load_new(temp, new_cp, f->level);
+            chunk_load_new(temp, new_cp, f->game_name, f->level);
         }
         break;
     }

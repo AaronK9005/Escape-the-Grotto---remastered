@@ -37,7 +37,7 @@ typedef struct floor_t floor_t;
  * 
  * @note Loads chunks around {0,0}
  */
-floor_t* floor_create(int level);
+floor_t* floor_create(const char* game_name, int level);
 
 /**
  * @brief Destroys a floor object.
@@ -47,6 +47,14 @@ floor_t* floor_create(int level);
  * @param f Floor object to destroy. May be `NULL`.
  */
 void floor_destroy(floor_t* f);
+
+/**
+ * @brief Forces saveing on all currently loaded chunks
+ * @return `EOF` times number of failed chunk saves, so preferably `0` (on total success), or `1` for invalid `f`
+ */
+int floor_save(floor_t* f);
+
+void floor_rename(floor_t* f, const char* new_name);
 
 /**
  * @brief Loads chunks around given `chunk_pos`

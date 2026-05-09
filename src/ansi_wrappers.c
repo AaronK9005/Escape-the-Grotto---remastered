@@ -12,7 +12,7 @@ void ansi_right(int n) { printf("\x1b[%dC", n); }
 void ansi_left(int n)  { printf("\x1b[%dD", n); }
 
 void ansi_save_pos() { printf("\x1b[s"); }
-void ansi_restore_pos() { printf("\x1b[u"); }
+void ansi_use_pos() { printf("\x1b[u"); }
 
 void ansi_goto_home() { printf("\x1b[H"); }
 void ansi_goto(int x, int y) { printf("\x1b[%d;%dH", y, x); }

@@ -14,7 +14,7 @@ void input_poll(input_handle_t* ih) {
 
     if (_kbhit())
     {
-        int input = tolower(_getch());
+        int input = _getch();
         
         if (input == ARROW_PREFIX && _kbhit())
         {

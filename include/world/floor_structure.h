@@ -12,6 +12,7 @@
 typedef struct floor_t
 {
     int level; // how deep a floor is
+    const char* game_name;
     chunk_t* chunk[CHUNKS_GRID_SIZE][CHUNKS_GRID_SIZE];
 
     chunk_t chunk_storage[CHUNKS_GRID_SIZE * CHUNKS_GRID_SIZE];

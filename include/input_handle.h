@@ -6,6 +6,7 @@
 typedef enum {
     INPUT_NONE = -1,
     INPUT_QUIT_PROGRAM = 'q',
+    INPUT_SAVE_GAME = 'S', // ctrl + S == 19
 
     INPUT_MOVE_UP = 'w',
     INPUT_MOVE_LEFT = 'a',

@@ -38,20 +38,20 @@ int chunk_save_to_file(chunk_t* chunk, const char* path) {
 }
 
 // TODO add worlds in save system
-int chunk_save(chunk_t* chunk, int floor_num) {
-    char file_name[64];
+int chunk_save(chunk_t* chunk, const char* game_name, int floor_num) {
+    char file_name[128];
     snprintf(file_name, sizeof(file_name),
-        "saved/floor_%d/chunk_(%d;%d).chunk", floor_num, chunk->pos.x, chunk->pos.y);
+        "saved/%s/floor_%d/chunk_(%d;%d).chunk", game_name, floor_num, chunk->pos.x, chunk->pos.y);
 
     return chunk_save_to_file(chunk, file_name);
 }
 
 // TODO add worlds in save system
-chunk_t* chunk_load(chunk_t* dest, chunk_pos_t pos, int floor_num) {
+chunk_t* chunk_load(chunk_t* dest, chunk_pos_t pos, const char* game_name, int floor_num) {
     // NULL-check in chunk_load_from_file
-    char file_name[64];
+    char file_name[128];
     snprintf(file_name, sizeof(file_name),
-        "saved/floor_%d/chunk_(%d;%d).chunk", floor_num, pos.x, pos.y);
+        "saved/%s/floor_%d/chunk_(%d;%d).chunk", game_name, floor_num, pos.x, pos.y);
 
     return chunk_load_from_file(dest, file_name);
 }

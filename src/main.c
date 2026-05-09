@@ -30,13 +30,11 @@ int main()
     game_view_t view = { 0 };
     input_handle_t input = { INPUT_NONE };
 
-    game_init(&game);
+    game_init(&game, "test", &test_gs);
     view_init(&view);
 
     ansi_hide_cursor();
     ansi_clear_screen();
-
-    game.state = &test_gs;
 
     while (!game.should_close && game.state)
     {

@@ -54,14 +54,14 @@ int chunk_save_to_file(chunk_t* chunk, const char* path);
  * @param chunk_pos Chunk position on the floor
  * @return SUCCESS: dest; FAIL: NULL
  */
-chunk_t* chunk_load(chunk_t* dest, chunk_pos_t chunk_pos, int floor_num);
+chunk_t* chunk_load(chunk_t* dest, chunk_pos_t chunk_pos, const char* game_name, int floor_num);
 
 /**
  * @brief Standard chunk saving
  * @param chunk Chunk to be saved
- * @return SUCCESS: 0; FAIL: EOF
+ * @return `0` on success, `EOF` otherwise
  */
-int chunk_save(chunk_t* chunk, int floor_num);
+int chunk_save(chunk_t* chunk, const char* game_name, int floor_num);
 
 chunk_t* chunk_generate(chunk_t* dest, chunk_pos_t chunk_pos);
 
@@ -71,8 +71,8 @@ chunk_t* chunk_generate(chunk_t* dest, chunk_pos_t chunk_pos);
  * @param chunk_pos Chunk position on the floor
  * @param floor_num What floor to load chunk from
  */
-static void chunk_load_new(chunk_t* dest, chunk_pos_t chunk_pos, int floor_num) {
-    if (!chunk_load(dest, chunk_pos, floor_num)) {
+static void chunk_load_new(chunk_t* dest, chunk_pos_t chunk_pos, const char* game_name, int floor_num) {
+    if (!chunk_load(dest, chunk_pos, game_name, floor_num)) {
         chunk_generate(dest, chunk_pos);
     }
 }
