@@ -22,6 +22,8 @@ void ansi_goto_rel(int dx, int dy) {
     if (dx > 0) printf("\x1b[%dC", dx);   // right
     if (dx < 0) printf("\x1b[%dD", -dx);  // left
 }
+
+int ansi_mvputchar(int x, int y, char c) { ansi_goto(x, y); putchar(c); }
 int ansi_mvprintf(int x, int y, const char* fmt, ...) {
     va_list args;
     int printed = 0;

@@ -1,3 +1,6 @@
-build/
 .vscode/
-saved/test/
+saved/test
+
+build/*
+!build/
+!build/game.exe

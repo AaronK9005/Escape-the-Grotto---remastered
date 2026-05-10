@@ -12,6 +12,7 @@ void ansi_goto_home();
 void ansi_goto(int x, int y);
 void ansi_goto_rel(int dx, int dy);
 
+int ansi_mvputchar(int x, int y, char c);
 int ansi_mvprintf(int x, int y, const char* fmt, ...);
 
 void ansi_clear_screen();

@@ -207,11 +207,11 @@ tile_id_t floor_get_tile(floor_t* f, position_t pos) {
 }
 
 int floor_tile_walkable(floor_t* f, position_t pos) {
-    return tile_flags[floor_get_tile(f, pos)] && FLAG_WALKABLE;
+    return (tile_flags[floor_get_tile(f, pos)] & FLAG_WALKABLE);
 }
 
 int floor_tile_seethrough(floor_t* f, position_t pos) {
-    return !(tile_char[floor_get_tile(f, pos)] && FLAG_OPAQUE);
+    return !(tile_char[floor_get_tile(f, pos)] & FLAG_OPAQUE);
 }
 
 dir_set_t floor_next_to_wall(floor_t* f, position_t pos) {
