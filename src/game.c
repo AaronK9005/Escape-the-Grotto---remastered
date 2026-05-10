@@ -7,6 +7,7 @@
 #endif
 
 #include "game.h"
+#include "game_state.h"
 #include "world/floor.h"
 
 #define N_FLOORS 5
@@ -82,6 +83,17 @@ void game_free(game_t* game) {
         free(game->floor_storage);
         game->floor_storage = NULL;
     }
+}
+
+int game_change_state(game_t* game, game_state_t* state) {
+    if (!game || !state) return NULL;
+
+    if (game->state->finish(game) != RET_OK) return 1;
+    if (state->init(game) != RET_OK) return 2;
+
+    game->state = state;
+
+    return RET_OK;
 }
 
 void game_save(game_t* game) {

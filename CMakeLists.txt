@@ -11,7 +11,7 @@ add_executable(game
     src/chunk_generate.c
     src/tiles.c
     src/floor.c
-    src/test_state.c
+    src/game_states/test_state.c
     # src/date.c
 )
 

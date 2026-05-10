@@ -35,6 +35,15 @@ typedef struct game_t
 int game_init(game_t* game, const char* name, game_state_t* g_state);
 void game_free(game_t* game);
 
+/**
+ * @brief Changes curent game state
+ * 
+ * First finishes current state, than inits new state and sets state ptr
+ * 
+ * @return `0`: success, `1` finish failed, `2` init failed
+ */
+int game_change_state(game_t* game, game_state_t* state);
+
 void game_save(game_t* game);
 void game_load(game_t* game, const char* name);
 

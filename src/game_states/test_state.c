@@ -15,6 +15,22 @@ static position_t player = { 0, 0 };
 static int render_dist = 10;
 static int saved_promt_counter = 0;
 
+int test_i(game_t* game, game_view_t* view) {
+    bool found = false;
+    for (int y = 5; y < MAP_SIZE - 5 && !found; y++) {
+        for (int x = 5; x < MAP_SIZE - 5; x++) {
+            position_t new_pos = pos_new(x, y);
+            if (floor_tile_walkable(&game->current_floor, new_pos)) {
+                player = new_pos;
+                found = true;
+                break;
+            }
+        }
+    }
+
+    return RET_OK;
+}
+
 int test_hi(input_handle_t* input, game_t* game, game_view_t* view) {
     switch (input->_char)
     {
@@ -82,27 +98,6 @@ int test_hi(input_handle_t* input, game_t* game, game_view_t* view) {
     return RET_OK;
 }
 
-int test_u(game_t* game) {
-    static bool player_pos_inited = false;
-
-    if (!player_pos_inited) {
-        bool found = false;
-        for (int y = 5; y < MAP_SIZE - 5 && !found; y++) {
-            for (int x = 5; x < MAP_SIZE - 5; x++) {
-                position_t new_pos = pos_new(x, y);
-                if (floor_tile_walkable(&game->current_floor, new_pos)) {
-                    player = new_pos;
-                    found = true;
-                    player_pos_inited = true;
-                    break;
-                }
-            }
-        }
-    }
-
-    return RET_OK;
-}
-
 int test_r(game_t* game, game_view_t* view) {
     if (!view->should_render) return RET_OK;
 
@@ -128,4 +123,10 @@ int test_r(game_t* game, game_view_t* view) {
     return RET_OK;
 }
 
-game_state_t test_gs = { test_hi, test_u, test_r };
+game_state_t test_gs = { 
+    .init = test_i,
+    .handle_input = test_hi,
+    .update = noop_update,
+    .render = test_r,
+    .finish = noop_finish
+};
