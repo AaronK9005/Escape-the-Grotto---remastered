@@ -37,7 +37,6 @@ int chunk_save_to_file(chunk_t* chunk, const char* path) {
     return 0;
 }
 
-// TODO add worlds in save system
 int chunk_save(chunk_t* chunk, const char* game_name, int floor_num) {
     char file_name[128];
     snprintf(file_name, sizeof(file_name),
@@ -46,7 +45,6 @@ int chunk_save(chunk_t* chunk, const char* game_name, int floor_num) {
     return chunk_save_to_file(chunk, file_name);
 }
 
-// TODO add worlds in save system
 chunk_t* chunk_load(chunk_t* dest, chunk_pos_t pos, const char* game_name, int floor_num) {
     // NULL-check in chunk_load_from_file
     char file_name[128];

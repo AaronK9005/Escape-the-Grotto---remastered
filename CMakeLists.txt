@@ -12,6 +12,7 @@ add_executable(game
     src/tiles.c
     src/floor.c
     src/test_state.c
+    # src/date.c
 )
 
 target_include_directories(game PRIVATE include)

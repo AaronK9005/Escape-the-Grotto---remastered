@@ -2,6 +2,7 @@
 
 # todo
 - world
-    - opaque floor (made from chunks)
-    - save system
+    - maybe dirty chunks?
+    - autosaves
 - implement view
+

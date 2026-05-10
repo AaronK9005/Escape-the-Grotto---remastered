@@ -15,7 +15,6 @@
 #include "util/ansi_wrappers.h"
 
 #include "game_states/test_state.h"
-#include "world/chunk.h"
 
 void inform_invalid_gamestate(int ret);
 

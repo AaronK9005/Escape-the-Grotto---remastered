@@ -84,6 +84,18 @@ void game_free(game_t* game) {
     }
 }
 
+void game_save(game_t* game) {
+    if (!game) return;
+
+
+
+    // FILE* f = fopen("")
+}
+
+void game_load(game_t* game, const char* name) {
+    if (!game || !name) return;
+}
+
 int game_rename(game_t* game, const char* name) {
     if (!game || !name) return ERR_RENAME;
 
