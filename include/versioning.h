@@ -2,6 +2,10 @@
 
 #include <stdint.h>
 
+#define GAME_VERSION_MAJOR 0
+#define GAME_VERSION_MINOR 1
+#define GAME_VERSION_PATCH 4
+
 int snprintf(char*, size_t, const char*, ...);
 
 typedef struct {
@@ -15,6 +19,14 @@ static inline version_t make_vesion(uint8_t major, uint8_t minor, uint16_t patch
         .major = major,
         .minor = minor,
         .patch = patch
+    };
+}
+
+static inline version_t game_version() {
+    return (version_t){
+        .major = GAME_VERSION_MAJOR,
+        .minor = GAME_VERSION_MINOR,
+        .patch = GAME_VERSION_PATCH
     };
 }
 
