@@ -3,6 +3,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+/**
+ * save format:
+ * 
+ * binary dumped chunk_t
+ */
+
 chunk_t* chunk_load_from_file(chunk_t* dest, const char* path) {
     if (!dest) return NULL;
 
