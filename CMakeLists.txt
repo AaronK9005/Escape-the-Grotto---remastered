@@ -12,6 +12,7 @@ add_executable(game
     src/tiles.c
     src/floor.c
     src/game_states/test_state.c
+    src/game_states/chunk_loader_state.c
     # src/date.c
 )
 

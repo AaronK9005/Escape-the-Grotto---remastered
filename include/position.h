@@ -41,7 +41,7 @@ static inline int pos_same(position_t p1, position_t p2) {
 }
 
 /**
- * @brief Checks if given position is valid
+ * @brief Checks if given position is valid (not `pos_none()`)
  */
 static inline int pos_valid(position_t p) {
     return p.x != POS_INVALID_MEMBER || p.y != POS_INVALID_MEMBER;

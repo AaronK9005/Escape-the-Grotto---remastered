@@ -40,7 +40,7 @@ void game_free(game_t* game);
  * 
  * First finishes current state, than inits new state and sets state ptr
  * 
- * @return `0`: success, `1` finish failed, `2` init failed
+ * @return `0`: success, `1` game or state missing, `2` finish() failed, `3` init() failed
  */
 int game_change_state(game_t* game, game_state_t* state);
 

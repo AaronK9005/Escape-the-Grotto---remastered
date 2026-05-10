@@ -86,10 +86,10 @@ void game_free(game_t* game) {
 }
 
 int game_change_state(game_t* game, game_state_t* state) {
-    if (!game || !state) return NULL;
+    if (!game || !state) return 1;
 
-    if (game->state->finish(game) != RET_OK) return 1;
-    if (state->init(game) != RET_OK) return 2;
+    if (game->state->finish(game) != RET_OK) return 2;
+    if (state->init(game) != RET_OK) return 3;
 
     game->state = state;
 

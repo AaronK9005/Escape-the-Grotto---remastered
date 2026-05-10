@@ -15,7 +15,7 @@ static position_t player = { 0, 0 };
 static int render_dist = 10;
 static int saved_promt_counter = 0;
 
-int test_i(game_t* game, game_view_t* view) {
+int test_i(game_t* game) {
     bool found = false;
     for (int y = 5; y < MAP_SIZE - 5 && !found; y++) {
         for (int x = 5; x < MAP_SIZE - 5; x++) {
