@@ -22,6 +22,9 @@ typedef enum {
     INPUT_RIGHT_CLICK = 'l'
 } input_t;
 
+#define CASE_INPUT_MOVES case INPUT_MOVE_UP: case INPUT_MOVE_LEFT: case INPUT_MOVE_DOWN: case INPUT_MOVE_RIGHT
+#define CASE_INPUT_ARROWS case INPUT_ARROW_UP: case INPUT_ARROW_LEFT: case INPUT_ARROW_DOWN: case INPUT_ARROW_RIGHT
+
 /**
  * @brief Wrapper for input handling
  * @param _char current input

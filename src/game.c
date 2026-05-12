@@ -67,6 +67,7 @@ int game_init(game_t* game, const char* name, game_state_t* g_state) {
     init_name(game, name);
     init_folder(game->name);
     game->state = g_state;
+    if (g_state) g_state->init(game);
     return init_world(game);
 }
 
