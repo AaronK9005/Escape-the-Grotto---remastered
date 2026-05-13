@@ -9,9 +9,13 @@
 #include "position.h"
 #include "direction.h"
 #include "util/ansi_wrappers.h"
+#include "world/chunk.h"
 
-// todo ? add frame for chunk_screen_t ?
-//! fix: chunks rendering still in the middle
+// todo: Load positions of saved files in loaded_chunks (on init and floor transition)
+// todo: add input handle for floor transition
+// todo: add area selection (bulk generate/delete)
+// todo: add pos_set_remove(pos)
+// ? add frame for chunk_screen_t ?
 
 #pragma region typedefs
 /// local position on `chunk_screen_t`
@@ -22,6 +26,9 @@ typedef position_t ivec2;
 
 // byte for bit-fields
 typedef unsigned char byte;
+
+#define LOCAL_INPUT_GENERATE_CHUNK 'g'
+#define LOCAL_INPUT_DELETE_CHUNK 'u'
 #pragma endregion
 
 #pragma region position set
@@ -34,6 +41,14 @@ typedef unsigned char byte;
  * @note `cap` MUST be a power of two
  * @note MUST be cleaned with pos_set_finish
  * @warning Set capacity large enought - it won't dynamiclly resize and will fail
+ * 
+ * v1 - constant-size hash table
+ * 
+ * Tracks ever-used slots by tombstones (field tmbs). Only way to unset a tombstone is this scenerio:
+ * function: `pos_set_insert(pos)`
+ * 1) While searching for already inserted position, free (but tombstoned) slot was found
+ * 2) param pos is already present
+ * 3) If next slot was never set, we can safely reset current tombstone because nothing ever used it in probe-chain.
  */
 typedef struct {
     unsigned size;
@@ -43,6 +58,7 @@ typedef struct {
 } pos_set;
 
 // rounds up to next power of 2
+/// @note Works only for uint32_t
 static inline unsigned next_pow2(unsigned x) {
     if (x <= 1) return 1;
     x--;
@@ -61,11 +77,11 @@ static inline unsigned next_pow2(unsigned x) {
  * @return `0` success; `1` invalid params; `2` OOM
  */
 static int pos_set_init(pos_set* pset, unsigned cap) {
-    if (!pset || cap <= 0) return 1;
+    if (!pset || cap == 0) return 1;
 
     cap = next_pow2(cap);
 
-    position_t* data = malloc(sizeof(position_t) * cap);
+    position_t* data = malloc(sizeof(position_t) * (size_t)cap);
     if (!data) return 2;
 
     byte* tmbs = calloc((cap + 7) / 8, sizeof(byte)); // for partial byte, which shouldn't even be here
@@ -124,9 +140,9 @@ static inline unsigned hash_pos(position_t pos) {
 }
 
 /**
- * @brief Index increment with wrap-around
+ * @brief Returns incremented index with wrap-around
  */
-static inline unsigned idx_advance(pos_set* pset, unsigned idx) {
+static inline unsigned idx_advance(const pos_set* pset, unsigned idx) {
     return (idx + 1) & (pset->cap - 1); // faster modulo. NEEDS pset->cap = 2**n
 }
 
@@ -135,7 +151,7 @@ static inline unsigned idx_advance(pos_set* pset, unsigned idx) {
  * @param pset Valid initialized `pos_set`
  * @param idx Index to check
  */
-static inline int tmbs_get(pos_set* pset, unsigned idx) {
+static inline int tmbs_get(const pos_set* pset, unsigned idx) {
     return idx < pset->cap && 
         (pset->tmbs[idx >> 3] & (1u << (idx & 7)));
         // (pset->tmbs[idx / 8] & (1u << (idx % 8))) != 0;
@@ -157,7 +173,7 @@ static inline void tmbs_set(pos_set* pset, unsigned idx) {
  * @brief Sets specified index to free (`0`)
  * @param pset Valid initialized `pos_set`
  * @param idx Index to unset
- * ! prob shoudn't be needed
+ * ! probably shoudn't be needed
  */
 static inline void tmbs_unset(pos_set* pset, unsigned idx) {
     if (idx < pset->cap) {
@@ -171,31 +187,47 @@ static inline void tmbs_unset(pos_set* pset, unsigned idx) {
  * @param pset Valid `pos_set`
  */
 static void pos_set_insert(pos_set* pset, position_t pos) {
+    if (!pset || !pos_valid(pos)) return;
+
     // todo: Grow when too large
     // just temorary
     if (pset->size >= pset->cap) return;
 
     unsigned idx = hash_pos(pos) & (pset->cap - 1);
-    int first_tomb = -1;
+    unsigned first_tomb = UINT_MAX;
+    unsigned count = 0;
 
     while (tmbs_get(pset, idx))
     {
+        // same -> return (or move closer if possible)
         if (pos_same(pset->data[idx], pos)) {
-            if (first_tomb != -1) {
+            if (first_tomb != UINT_MAX) {
                 pset->data[first_tomb] = pos;
                 pset->data[idx] = pos_none();
+            }
+            // if next one is not tombstone, we can also get rid of current one
+            unsigned next = idx_advance(pset, idx);
+            if (!tmbs_get(pset, next))
+            {
+                tmbs_unset(pset, idx);
             }
             return;
         }
 
-        if (first_tomb == -1) {
+        // free spot & tombstone not set -> set tombstone
+        if (!pos_valid(pset->data[idx]) && first_tomb == UINT_MAX) {
             first_tomb = idx;
         }
 
-        idx = idx_advance(pset, idx);
+        // advance idx
+        if (++count == pset->cap) {
+            if (first_tomb != UINT_MAX) break; // saving happens outside loop, so break if we have tombstone
+            else return;
+        }
+        else idx = idx_advance(pset, idx);
     }
 
-    if (first_tomb != -1) {
+    if (first_tomb != UINT_MAX) {
         idx = (unsigned)first_tomb;
     }
     
@@ -205,15 +237,17 @@ static void pos_set_insert(pos_set* pset, position_t pos) {
     pset->size++;
 }
 
-static bool pos_set_has(pos_set* pset, position_t pos) {
-    // temporary
-    if (pset->size >= pset->cap) return false;
+static bool pos_set_has(const pos_set* pset, position_t pos) {
+    if (!pset || !pos_valid(pos)) return false;
 
     unsigned idx = hash_pos(pos) & (pset->cap - 1);
 
+    unsigned count = 0;
     while (tmbs_get(pset, idx)) {
         if (pos_same(pset->data[idx], pos)) return true;
         idx = idx_advance(pset, idx);
+
+        if (++count == pset->cap) return false;
     }
 
     return false;
@@ -238,13 +272,12 @@ typedef struct chunk_screen_t {
 } chunk_screen_t;
 
 static inline void cs_clear(chunk_screen_t* cs) {
-    if (!cs || !cs->buffer) return;
+    if (!cs || !cs->buffer || cs->buf_size <= 0) return;
 
     memset(cs->buffer, ' ', cs->buf_size);
     for (int y = 0; y < cs->dim.y; y++) {
         cs->buffer[y * cs->buf_line_s + cs->dim.x] = '\n';
     }
-    cs->buffer[cs->buf_size - 1] = '\0';
 }
 
 /**
@@ -293,10 +326,10 @@ static int cs_resize(chunk_screen_t* cs, ivec2 dim) {
     int line_s = dim.x + 1;
     int size = line_s * dim.y;
 
-    if (cs->buffer) free(cs->buffer);
-
     char* buff = malloc(size * sizeof(char));
     if (!buff) return 2;
+
+    if (cs->buffer) free(cs->buffer);
 
     cs->buffer = buff;
     cs->dim = dim;
@@ -310,26 +343,32 @@ static int cs_resize(chunk_screen_t* cs, ivec2 dim) {
     return 0;
 }
 
+static int cs_load_chunks(chunk_screen_t* cs, const char* game_name, int floor_level) {
+    if (!cs || !game_name) return 1;
+    return 0;
+}
+
 /**
  * @brief Unchecked buffer getter
  * @param cs `Chunk_screen_t` to access
  * @param pos Checked pos (MUST be in bounds)
  * @warning Could access out of bounds - `pos` MUST be checked.
  */
-static inline char cs_char_uc(chunk_screen_t* cs, ivec2 pos) {
+static inline char cs_char_uc(const chunk_screen_t* cs, screen_pos_t pos) {
     return cs->buffer[pos.y * cs->buf_line_s + pos.x];
 }
 
-static inline int cs_valid_idx(chunk_screen_t* cs, screen_pos_t pos) {
+static inline int cs_valid_idx(const chunk_screen_t* cs, screen_pos_t pos) {
     return pos.x >= 0 && pos.x < cs->dim.x && pos.y >= 0 && pos.y < cs->dim.y;
 }
 
 /**
- * @brief Returns linear index
+ * @brief Returns linear index from valid pos
+ * @param pos Both field MUST be 0 <= X < cs->dim.X
  * @warning Does not check bounds
  */
-static inline unsigned cs_idx(chunk_screen_t* cs, screen_pos_t pos) {
-    return pos.y * cs->buf_line_s + pos.x;
+static inline unsigned cs_idx(const chunk_screen_t* cs, ivec2 pos) {
+    return (unsigned)pos.y * cs->buf_line_s + (unsigned)pos.x;
 }
 
 static inline void cs_draw_chunk(chunk_screen_t* cs, screen_pos_t pos) {
@@ -339,23 +378,19 @@ static inline void cs_draw_chunk(chunk_screen_t* cs, screen_pos_t pos) {
 static void cs_draw_chunks(chunk_screen_t* cs, pos_set* pset) {
     if (!cs || !pset) return;
 
-    if (chunks_changed || screen_resized || cursor_changed) {
-        chunks_changed = false;
-        screen_resized = false;
-        cursor_changed = false;
+    cs_clear(cs);
 
-        int counter = 0;
-        for (int i = 0; i < pset->cap && counter < pset->size; i++) {
-            if (!tmbs_get(pset, i) || !pos_valid(pset->data[i])) continue;
+    int counter = 0;
+    for (int i = 0; i < pset->cap && counter < pset->size; i++) {
+        if (!tmbs_get(pset, i) || !pos_valid(pset->data[i])) continue;
 
-            screen_pos_t diff = pos_dif(pset->data[i], cs->offset);
-            cs_draw_chunk(cs, diff);
-            counter++;
-        }
+        screen_pos_t diff = pos_dif(pset->data[i], cs->offset);
+        cs_draw_chunk(cs, diff);
+        counter++;
     }
 }
 
-static int cs_display(chunk_screen_t* cs) {
+static int cs_display(const chunk_screen_t* cs) {
     if (!cs) return 1;
 
     if (fwrite(cs->buffer, sizeof(char), cs->buf_size, stdout) != cs->buf_size) {
@@ -403,9 +438,12 @@ int chnkld_init(game_t* game) {
 
     if (cs_init(&screen, pos_new(x, y)) != 0) return RET_FAIL;
 
-    if (pos_set_init(&loaded_chunks, 512) != 0) return RET_FAIL;
+    if (pos_set_init(&loaded_chunks, 512) != 0) {
+        cs_finish(&screen);
+        return RET_FAIL;
+    }
 
-    const char test_r = 1;
+    const char test_r = 2;
     for (int y = -test_r; y <= test_r; y++) {
         for (int x = -test_r; x <= test_r; x++) {
             pos_set_insert(&loaded_chunks, pos_new(x, y));
@@ -430,15 +468,65 @@ static inline dir4 input_d4(int input) {
     }
 }
 
-static inline
-
 int chnkld_handle_input(input_handle_t* input, game_t* game, game_view_t* view) {
+
+    switch (input->_char)
+    {
+    case LOCAL_INPUT_GENERATE_CHUNK:
+    {
+        chunk_t new_chunk = { 0 };
+        if (NULL == chunk_generate(&new_chunk, screen.cursor)) {
+            // what to do on fail ?
+            // probably OOM anyway, so not much can be done
+            ansi_save_pos();
+            ansi_mvprintf(60, 1, "chunk generation failed");
+            ansi_use_pos();
+        }
+        // if (EOF == chunk_save(&new_chunk, game->name, game->current_floor.level)) {
+        //     ansi_save_pos();
+        //     ansi_mvprintf(60, 2, "chunk saving failed");
+        //     ansi_use_pos();
+        // }
+        pos_set_insert(&loaded_chunks, screen.cursor);
+        chunks_changed = true;
+    }
+        break;
+    case LOCAL_INPUT_DELETE_CHUNK:
+        if (pos_set_has(&loaded_chunks, screen.cursor))
+        {
+            char filename[64];
+            snprintf(
+                filename, sizeof(filename),
+                "saved/%s/floor_%d/chunk_(%d,%d).chunk",
+                game->name,
+                game->current_floor.level,
+                screen.cursor.x,
+                screen.cursor.y
+            );
+            int ret = remove(filename);
+            if (ret != 0) {
+                ansi_save_pos();
+                ansi_mvprintf(60, 3, "remove failed: %s", strerror(errno));
+                ansi_use_pos();
+            }
+            chunks_changed = true;
+        }
+        break;
+    default:
+        break;
+    }
 
     switch (input->_char)
     {
     case INPUT_QUIT_PROGRAM: game->should_close = true; break;
     CASE_INPUT_MOVES:
-        cs_translate(&screen, get_dir(input_d4(input->_char)));
+        dir_t dir = get_dir(input_d4(input->_char));
+        cs_translate(&screen, dir);
+
+        // ansi_save_pos();
+        // ansi_mvprintf(60, 1, "dir_t = (%d, %d)   \n", dir.x, dir.y);
+        // ansi_use_pos();
+
         view->should_render = true;
         screen_moved = true;
         break;
@@ -454,7 +542,20 @@ int chnkld_handle_input(input_handle_t* input, game_t* game, game_view_t* view) 
 }
 
 int chnkld_update(game_t* game) {
-    cs_draw_chunks(&screen, &loaded_chunks);
+    if (
+        chunks_changed ||
+        screen_resized ||
+        cursor_changed ||
+        screen_moved
+    )
+    {
+        chunks_changed = false;
+        screen_resized = false;
+        cursor_changed = false;
+        screen_moved = false;
+
+        cs_draw_chunks(&screen, &loaded_chunks);
+    }
 
     return RET_OK;
 }
@@ -464,9 +565,11 @@ int chnkld_render(game_t* game, game_view_t* view) {
 
     view->should_render = false;
 
-    ansi_clear_screen();
+    //ansi_clear_screen();
     ansi_goto_home();
     cs_display(&screen);
+
+    return RET_OK;
 }
 
 int chnkld_finish(game_t* game) {

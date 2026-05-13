@@ -60,15 +60,19 @@ static int init_world(game_t* g) {
 }
 
 int game_init(game_t* game, const char* name, game_state_t* g_state) {
-    if (!game) return 1;
+    if (!game || !g_state) return 1;
 
     memset(game, 0, sizeof(game_t));
 
+    game->state = g_state;
+
     init_name(game, name);
     init_folder(game->name);
-    game->state = g_state;
-    if (g_state) g_state->init(game);
-    return init_world(game);
+    init_world(game);
+    
+    g_state->init(game); // must be last, init() methods need valid game (mainly floor)
+
+    return 0;
 }
 
 void game_free(game_t* game) {
