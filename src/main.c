@@ -77,6 +77,8 @@ int main()
     game_free(&game);
 
     ansi_clear_screen();
+    ansi_reset();
+    ansi_show_cursor();
 
     if (_return == 0) {
         printf("game ended\n");
