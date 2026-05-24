@@ -15,7 +15,7 @@
 #include "util/ansi_wrappers.h"
 
 #include "game_states/test_state.h"
-#include "game_states/chunk_loader_state.h"
+// #include "game_states/chunk_loader_state.h"
 
 void inform_invalid_gamestate(int ret);
 
@@ -30,7 +30,7 @@ int main()
     game_view_t view = { 0 };
     input_handle_t input = { INPUT_NONE };
 
-    game_init(&game, "test", &chunk_loader_gs);
+    game_init(&game, "test", &test_gs);
     view_init(&view);
 
     ansi_hide_cursor();

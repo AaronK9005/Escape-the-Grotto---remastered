@@ -4,6 +4,7 @@ typedef unsigned char tile_id_t;
 
 #define FLAG_WALKABLE       (1 << 0)
 #define FLAG_OPAQUE         (1 << 1)
+#define FLAG_INTERACTABLE   (1 << 2)
 
 enum {
     #define T(NAME) TILE_##NAME,

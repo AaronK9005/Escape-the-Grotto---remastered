@@ -4,7 +4,7 @@
 
 #define GAME_VERSION_MAJOR 0
 #define GAME_VERSION_MINOR 2
-#define GAME_VERSION_PATCH 1
+#define GAME_VERSION_PATCH 3
 
 int snprintf(char*, size_t, const char*, ...);
 
